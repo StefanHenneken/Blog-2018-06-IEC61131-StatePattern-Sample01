@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <POU Name="FB_Machine" Id="{3248735b-e8b2-4b68-8f2f-92cbd3c5774b}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Machine
+VAR_INPUT
+	bButton				:	BOOL;
+	bInsertCoin			:	BOOL;
+	bTakeProduct		:	BOOL;
+	bTakeCoin			:	BOOL;	
+END_VAR
+VAR_OUTPUT
+	eState 				:	E_States;
+	nProducts			:	UINT;	
+END_VAR
+VAR
+	rtrigButton			:	R_TRIG;
+	rtrigInsertCoin		:	R_TRIG;
+	rtrigTakeProduct	:	R_TRIG;
+	rtrigTakeCoin		:	R_TRIG;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[rtrigButton(CLK := bButton);
+rtrigInsertCoin(CLK := bInsertCoin);
+rtrigTakeProduct(CLK := bTakeProduct);
+rtrigTakeCoin(CLK := bTakeCoin);
+
+CASE eState OF
+	E_States.eWaiting:
+		IF (rtrigButton.Q) THEN
+			;	// keep in the state
+		END_IF
+		IF (rtrigInsertCoin.Q) THEN
+			ADSLOGSTR(msgCtrlMask := ADSLOG_MSGTYPE_HINT, msgFmtStr := 'Customer has insert a coin.', strArg := '');
+			eState := E_States.eHasCoin;			
+		END_IF
+	E_States.eHasCoin:
+		IF (rtrigButton.Q) THEN
+			IF (nProducts > 0) THEN
+				nProducts := nProducts - 1;
+				ADSLOGSTR(msgCtrlMask := ADSLOG_MSGTYPE_HINT, msgFmtStr := 'Customer has pressed the button. Output product.', strArg := '');
+				eState := E_States.eProductEjected;
+			ELSE				
+				ADSLOGSTR(msgCtrlMask := ADSLOG_MSGTYPE_HINT, msgFmtStr := 'Customer has pressed the button. No more products. Return coin.', strArg := '');
+				eState := E_States.eCoinEjected;
+			END_IF
+		END_IF
+	E_States.eProductEjected:
+		IF (rtrigTakeProduct.Q) THEN
+			ADSLOGSTR(msgCtrlMask := ADSLOG_MSGTYPE_HINT, msgFmtStr := 'Customer has taken the product.', strArg := '');
+			eState := E_States.eWaiting;
+		END_IF
+	E_States.eCoinEjected:
+		IF (rtrigTakeCoin.Q) THEN
+			ADSLOGSTR(msgCtrlMask := ADSLOG_MSGTYPE_HINT, msgFmtStr := 'Customer has taken the coin.', strArg := '');
+			eState := E_States.eWaiting;
+		END_IF
+	ELSE
+		ADSLOGSTR(msgCtrlMask := ADSLOG_MSGTYPE_ERROR, msgFmtStr := 'Invalid state', strArg := '');
+		eState := E_States.eWaiting;				
+END_CASE
+]]></ST>
+    </Implementation>
+    <Method Name="FB_init" Id="{509074c7-88de-4318-90ac-0017f12028c6}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+	nProducts :	UINT;	
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.nProducts := nProducts;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_Machine">
+      <LineId Id="64" Count="3" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="21" Count="33" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Machine.FB_init">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

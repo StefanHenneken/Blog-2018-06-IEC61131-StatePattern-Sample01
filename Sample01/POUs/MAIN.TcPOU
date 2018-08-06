@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.12">
+  <POU Name="MAIN" Id="{98dd6e6b-9ff3-4f85-9d6c-d1949ebdfc91}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	fbMachine			:	FB_Machine(3);
+	bButton				:	BOOL;
+	bInsertCoin			:	BOOL;
+	bTakeProduct		:	BOOL;
+	bTakeCoin			:	BOOL;
+END_VAR
+
+    ]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbMachine(	bButton	:= bButton,
+			bInsertCoin := bInsertCoin,
+			bTakeProduct := bTakeProduct,
+			bTakeCoin := bTakeCoin);	
+
+bButton := FALSE;
+bInsertCoin := FALSE;
+bTakeProduct := FALSE;
+bTakeCoin := FALSE;
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="102" Count="4" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="83" Count="1" />
+      <LineId Id="82" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
